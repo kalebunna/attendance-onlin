@@ -20,15 +20,23 @@ class Auth extends RestController
             // $this->response(array('status' => $password));
             if ($verify_password) {
                 $respons = array(
-                    "status" => TRUE,
-                    "data_user" => $data_user->row()
+                    "status" => "succes",
+                    "data" => $data_user->row()
                 );
                 $this->response($respons);
             } else {
-                $this->response(array('status' => "password salah"));
+                $respons = array(
+                    "status" => "err",
+                    "data" => ""
+                );
+                $this->response($respons);
             }
         } else {
-            $this->response(array('status' => $data_user->num_rows()));
+            $respons = array(
+                "status" => "err",
+                "data" => ""
+            );
+            $this->response($respons);
         }
     }
 }

@@ -11,6 +11,7 @@ class Scanbarcode extends REST_Controller
     public function __construct()
     {
         parent::__construct();
+        $this->load->model('Main_model');
     }
 
     public function index_get()
@@ -21,9 +22,8 @@ class Scanbarcode extends REST_Controller
         ], 200);
     }
 
-    public function input_absen()
+    public function input_absen_post()
     {
-
         // get data id hari ini
         $data_where_today = [
             "tgl" => date("Y-m-d")
@@ -31,7 +31,6 @@ class Scanbarcode extends REST_Controller
         $this->db->where($data_where_today);
         $retrive_data = $this->db->get("absensi");
         if ($retrive_data->num_row() > 0) {
-
             $id = $retrive_data->row()->id_absen;
             // case for masuk dan keluar
             $where_case = [
@@ -59,6 +58,50 @@ class Scanbarcode extends REST_Controller
             }
         } else {
             $this->response(array('status' => 'no_update'));
+        }
+    }
+
+    public function absen_masuk_post()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        $temp_id = $this->post("barcode");
+        $id_user = $this->post("id_user");
+        $in_out = $this->post("in_out");
+        $id_barcode = $this->Main_model->deskripsi($temp_id);
+        $cek_barcode = $this->db->query('SELECT * FROM absensi WHERE id_absen = "' . $id_barcode . '" AND tgl = "' . date("Y-m-d") . '";');
+        if ($cek_barcode->num_rows() > 0) {
+            $jamscan = date("h:i:sa");
+            $data_jam = $this->db->where("keterangan", "Masuk")->limit(1)->get("jam")->row();
+            $start = $data_jam->start;
+            $finish = strtotime($data_jam->finish);
+
+            $selisih = strtotime($jamscan) - $finish;
+
+            if ($selisih >= 0) {
+                $jam = floor($selisih / (60 * 60));
+                $menit    = $selisih - $jam * (60 * 60);
+
+                $valueselisih = $jam .  ' jam ' . floor($menit / 60) . ' menit';
+
+                $ket_lambat = true;
+                $selisih =  $valueselisih;
+            } else {
+                $ket_lambat = FALSE;
+                $selisih =  "";
+            }
+
+            $data_input = [
+                "selisih" => $selisih,
+                "ket_lambat" => $ket_lambat,
+                "in_out" => $in_out,
+                "jam" => $jamscan,
+                "id_absensi" => $id_barcode,
+                "id_users" => $id_user,
+            ];
+            $this->db->insert("absensi_karyawan", $data_input);
+            $this->response(array('status' => true));
+        } else {
+            $this->response(array('status' => false));
         }
     }
 }
