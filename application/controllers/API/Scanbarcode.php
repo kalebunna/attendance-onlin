@@ -1,21 +1,24 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-use chriskacerguis\RestServer\RestController;
+require APPPATH . '/libraries/REST_Controller.php';
 
-class Scanbarcode extends RestController
+// use namespace
+use Restserver\Libraries\REST_Controller;
+
+class Scanbarcode extends REST_Controller
 {
     public function __construct()
     {
         parent::__construct();
     }
 
-    public function index()
+    public function index_get()
     {
         $this->response([
             'status' => false,
             'message' => 'No such user found'
-        ], 404);
+        ], 200);
     }
 
     public function input_absen()
@@ -53,9 +56,6 @@ class Scanbarcode extends RestController
                 $jam = $this->db->get("jam")->row();
                 $jam_start = $jam->start;
                 $jam_finish = $jam->finish;
-                if (strtotime()) {
-                    # code...
-                }
             }
         } else {
             $this->response(array('status' => 'no_update'));
