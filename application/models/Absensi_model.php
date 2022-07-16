@@ -1,7 +1,7 @@
 <?php
-defined('BASEPATH') OR die('No direct script access allowed!');
+defined('BASEPATH') or die('No direct script access allowed!');
 
-class Absensi_model extends CI_Model 
+class Absensi_model extends CI_Model
 {
     public function get_absen($id_user, $bulan, $tahun)
     {
@@ -35,6 +35,22 @@ class Absensi_model extends CI_Model
         $this->db->or_where('finish', $time, '>=');
         $data = $this->db->get('jam');
         return $data->row();
+    }
+
+    public function cek_if_today_already_exist($today)
+    {
+        $this->db->where($today);
+        $this->db->limit(1);
+        $row = $this->db->get("absensi");
+        if ($row->num_rows() > 0) {
+            return $row->row()->id_absen;
+        } else {
+            $datainput = [
+                "tgl" => date("Y-m-d")
+            ];
+            $this->db->insert("absensi", $datainput);
+            return $this->db->insert_id();
+        }
     }
 }
 

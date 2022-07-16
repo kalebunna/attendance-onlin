@@ -23,7 +23,9 @@
     <script>
         var BASEURL = '<?= base_url() ?>';
     </script>
-    <?php check_absen_harian() ?>
+    <?php
+    //  check_absen_harian()
+    ?>
 </head>
 
 <body>
@@ -140,7 +142,7 @@
             </div>
             <footer class="footer">
                 <div class="container">
-                    
+
                 </div>
             </footer>
         </div>
