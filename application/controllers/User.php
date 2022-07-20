@@ -7,7 +7,7 @@ class User extends CI_Controller
     {
         parent::__construct();
         is_login();
-        $this->agent->is_mobile();
+        // $this->agent->is_mobile();
         $this->load->model('User_model', 'user');
     }
 
@@ -46,7 +46,7 @@ class User extends CI_Controller
                 'message' => 'Profil gagal diubah!'
             ];
         }
-        
+
         $this->session->set_flashdata('response', $response);
         redirect('user');
     }
@@ -86,7 +86,7 @@ class User extends CI_Controller
             ];
             unlink($data_foto['full_path']);
         }
-        
+
         $this->session->set_flashdata('response', $response);
         redirect('user');
     }
