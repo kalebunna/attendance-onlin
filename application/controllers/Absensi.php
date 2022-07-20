@@ -1,4 +1,7 @@
 <?php
+
+use phpDocumentor\Reflection\Types\This;
+
 defined('BASEPATH') or die('No direct script access allowed!');
 
 class Absensi extends CI_Controller
@@ -39,22 +42,24 @@ class Absensi extends CI_Controller
     {
         $now = date('H:i:s');
         $data['absen'] = $this->absensi->absen_harian_user($this->session->id_user)->num_rows();
+
         return $this->template->load('template', 'absensi/absen', $data);
     }
 
-    public function absen()
+    public function absen($ket)
     {
-        if (@$this->uri->segment(3)) {
-            $keterangan = ucfirst($this->uri->segment(3));
-        } else {
-            $absen_harian = $this->absensi->absen_harian_user($this->session->id_user)->num_rows();
-            $keterangan = ($absen_harian < 2 && $absen_harian < 1) ? 'Masuk' : 'Pulang';
-        }
+       
+        date_default_timezone_set('Asia/Jakarta');
+        $keterangan = $ket;
         $jamscan = date("h:i:sa");
         $this->load->model("Absensi_model", "absensi_model");
+        $cektoday=[
+            "tgl"=>date("Y-m-d")
+        ];
+        $id = $this->absensi_model->cek_if_today_already_exist($cektoday);
 
-        $id = $this->absensi_model->cek_if_today_already_exist($jamscan);
-
+        $selisih="";
+        $ket_lambat="";
         if ($keterangan == "Masuk") {
             $data_jam = $this->db->where("keterangan", "Masuk")->limit(1)->get("jam")->row();
             $finish = strtotime($data_jam->finish);
@@ -74,24 +79,41 @@ class Absensi extends CI_Controller
         }
 
         $data = [
+            "jam"=> date("h:i:sa"),
             "selisih" => $selisih,
             "ket_lambat" => $ket_lambat,
             'id_absensi' => $id,
-            'keterangan' => $keterangan,
-            'id_user' => $this->session->id_user
+            'in_out' => $keterangan,
+            'id_users' => $this->session->id_user
         ];
-        $result = $this->absensi->insert_data($data);
-        if ($result) {
-            $this->session->set_flashdata('response', [
-                'status' => 'success',
-                'message' => 'Absensi berhasil dicatat'
-            ]);
-        } else {
+
+        // cek jika sudah absen
+        $wheresudahabsen=[
+            "id_absensi"=>$id,
+            "id_users"=> $this->session->id_user,
+            "in_out" => $keterangan,
+        ];
+        $resultwhere= $this->db->where($wheresudahabsen)->get("absensi_karyawan")->num_rows();
+        if ($resultwhere > 0) {
             $this->session->set_flashdata('response', [
                 'status' => 'error',
-                'message' => 'Absensi gagal dicatat'
+                'message' => 'Anda Sudah Absen'
             ]);
+        }else {
+            $result = $this->absensi->insert_data($data);
+            if ($result) {
+                $this->session->set_flashdata('response', [
+                    'status' => 'success',
+                    'message' => 'Absensi berhasil dicatat'
+                ]);
+            } else {
+                $this->session->set_flashdata('response', [
+                    'status' => 'error',
+                    'message' => 'Absensi gagal dicatat'
+                ]);
+            }
         }
+        
         redirect('absensi/detail_absensi');
     }
 
