@@ -57,7 +57,9 @@ class Dashboard extends REST_Controller
         $result = $this->db->get("absensi")->result();
         $all_result = array();
         foreach ($result as $key) {
-            $dataResult["tanhgal"] = $key->tgl;
+            $dataResult["tanggal"] =  date('d', strtotime($key->tgl));
+            $dataResult["Bulan"] =  date('M', strtotime($key->tgl));
+            // $dataResult[""] =  date('M', strtotime($key->tgl));
             // ambil data masuk
             $where = [
                 "id_users" => $this->post("id"),
@@ -67,22 +69,27 @@ class Dashboard extends REST_Controller
             $this->db->where($where);
             $this->db->limit(1);
             $tempmasuk = $this->db->get("absensi_karyawan")->row();
-            $dataResult["jammasuk"] = $tempmasuk->jam;
-            $dataResult["kemlabat"] = $tempmasuk->ket_lambar = true ? "Terlambat" : "OK";
-            $dataResult["selisih"] = $tempmasuk->selisih;
 
-            $where = [
+            $dataResult["jam_masuk"] = isset($tempmasuk->jam)  ?  $tempmasuk->jam : null;
+            $dataResult["ketlambat"] = isset($tempmasuk->ket_lambat) ? $tempmasuk->ket_lambar = true ? "Terlambat" : "OK" : null;
+            $dataResult["selisih"] = isset($tempmasuk->selisih) ? $tempmasuk->selisih : null;
+
+
+            $where2 = [
                 "id_users" => $this->post("id"),
                 "id_absensi" => $key->id_absen,
                 "in_out" => "Keluar"
             ];
-            $this->db->where($where);
+            $this->db->where($where2);
             $this->db->limit(1);
             $keluar = $this->db->get("absensi_karyawan")->row();
-            print_r($keluar);
-            $dataResult["jam_keluar"] = $keluar->jam;
+            $dataResult["jam_keluar"] = isset($keluar->jam) ? $keluar->jam : null;
             array_push($all_result, $dataResult);
         }
-        $this->response(array('ss' => $all_result));
+        $respose = [
+            "status" => "berhasil",
+            "data" => $all_result
+        ];
+        $this->response($respose);
     }
 }
